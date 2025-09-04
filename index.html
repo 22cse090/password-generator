@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+      width: 350px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .password-box {
+      display: flex;
+      margin-bottom: 15px;
+    }
+    #password {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+      outline: none;
+    }
+    #copyBtn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+    }
+    #copyBtn:hover {
+      background: #45a049;
+    }
+    .options {
+      text-align: left;
+      margin: 10px 0;
+    }
+    button#generateBtn {
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    button#generateBtn:hover {
+      background: #0056b3;
+    }
+    .strength {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔑 Password Generator</h2>
+    <div class="password-box">
+      <input type="text" id="password" readonly>
+      <button id="copyBtn">Copy</button>
+    </div>
+    <div class="options">
+      <label>Password Length: <span id="lengthValue">12</span></label><br>
+      <input type="range" id="length" min="6" max="30" value="12">
+      <br><br>
+      <label><input type="checkbox" id="uppercase" checked> Include Uppercase</label><br>
+      <label><input type="checkbox" id="numbers" checked> Include Numbers</label><br>
+      <label><input type="checkbox" id="symbols" checked> Include Symbols</label>
+    </div>
+    <button id="generateBtn">Generate Password</button>
+    <div class="strength" id="strength"></div>
+  </div>
+  <script>
+    const passwordBox = document.getElementById("password");
+    const lengthSlider = document.getElementById("length");
+    const lengthValue = document.getElementById("lengthValue");
+    const copyBtn = document.getElementById("copyBtn");
+    const generateBtn = document.getElementById("generateBtn");
+    const strengthText = document.getElementById("strength");
+    const upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lowerCase = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*()_+=-<>?/{}[]";
+    function generatePassword() {
+      let length = parseInt(lengthSlider.value);
+      let characters = lowerCase;
+      if (document.getElementById("uppercase").checked) characters += upperCase;
+      if (document.getElementById("numbers").checked) characters += numbers;
+      if (document.getElementById("symbols").checked) characters += symbols;
+      // Ensure at least one of each selected type is included
+      let required = [];
+      if (document.getElementById("uppercase").checked) required.push(upperCase[Math.floor(Math.random()*upperCase.length)]);
+      if (document.getElementById("numbers").checked) required.push(numbers[Math.floor(Math.random()*numbers.length)]);
+      if (document.getElementById("symbols").checked) required.push(symbols[Math.floor(Math.random()*symbols.length)]);
+      let password = required.join("");
+      for (let i = password.length; i < length; i++) {
+        let rand = Math.floor(Math.random() * characters.length);
+        password += characters[rand];
+      }
+      // Shuffle to avoid predictable placement of required chars
+      password = password.split('').sort(() => Math.random() - 0.5).join('');
+      passwordBox.value = password;
+      checkStrength(password);
+    }
+    function checkStrength(password) {
+      let score = 0;
+      if (password.length >= 12) score++;
+      if (/[A-Z]/.test(password)) score++;
+      if (/[0-9]/.test(password)) score++;
+      if (/[!@#$%^&*()_+\-<>?/{\}[\]]/.test(password)) score++;
+      let strength = "Weak";
+      if (score >= 4) { strength = "Strong"; strengthText.style.color = "green"; }
+      else if (score >= 2) { strength = "Medium"; strengthText.style.color = "orange"; }
+      else { strengthText.style.color = "red"; }
+      strengthText.textContent = "Strength: " + strength;
+    }
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(passwordBox.value);
+        alert("Password copied to clipboard!");
+      } catch (e) {
+        passwordBox.select();
+        document.execCommand("copy");
+        alert("Password copied to clipboard!");
+      }
+    });
+    generateBtn.addEventListener("click", generatePassword);
+    lengthSlider.addEventListener("input", () => { lengthValue.textContent = lengthSlider.value; });
+    // Generate one password at page load
+    generatePassword();
+  </script>
+</body>
+</html>
